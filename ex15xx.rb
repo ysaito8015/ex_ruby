@@ -1,4 +1,5 @@
 require 'date'
+require 'pry'
 
 class BookInfo
   # BookInfo クラスのインスタンスを初期化する
@@ -29,6 +30,7 @@ end
 class BookInfoManager
   def initialize
     @book_infos = {}
+    @search_info = {}
   end
 
   # 蔵書データをセットアップする
@@ -83,6 +85,81 @@ class BookInfoManager
     end
   end
 
+  # 蔵書データを登録する
+  def searchAllBookInfo
+    @search_info = {}
+    # 蔵書データ1件分のインスタンスを作る
+    book_info = BookInfo.new( "", "", 0, Date.new )
+    # 登録するデータを項目ごとに入力する
+    print "\n"
+    print "キー："
+    key = gets.chomp
+    print "書籍名："
+    book_info.title = gets.chomp
+    print "著者名："
+    book_info.author = gets.chomp
+    print "ページ数："
+    book_info.page = gets.chomp.to_i
+    print "発刊年："
+    year = gets.chomp.to_i
+    print "発刊月："
+    month = gets.chomp.to_i
+    print "発刊日："
+    day = gets.chomp.to_i
+    ( year || month || day) == 0 ?  book_info.publish_date = nil : book_info.publish_date = Date.new( year, month, day )
+
+
+    # 作成した蔵書データの1件分をハッシュに登録する
+    @search_info[key] = book_info
+
+    # 入力されたデータと蔵書データと比較する
+    result = {}
+    @book_infos.each do |key,info|
+        @search_info.each do |k,s|
+          unless k.empty?
+            if key.to_s =~ /#{k}/ 
+              result[key] = info
+            end
+          end
+
+          unless s.title.empty?
+            if info.title =~ /#{s.title}/
+              result[key] = info
+            end
+          end
+
+          unless s.author.empty?
+            if info.author =~ /#{s.author}/
+              result[key] = info
+            end
+          end
+
+          unless s.page == 0
+            if info.page.to_s =~ /#{s.page.to_i}/
+              result[key] = info
+            end
+          end
+
+          unless s.publish_date.nil?
+            if info.publish_date == s.publish_date
+              result[key] = info
+            end
+          end
+        end
+    end
+
+    if result.empty?
+      puts "見つかりませんでした"
+    else
+      puts "\n-------------------------"
+      result.each do |key,info|
+        print info.toFormattedString
+        puts "\n-------------------------"
+      end
+    end
+
+  end
+
   # 処理の選択と選択後の処理を繰り返す
   def run
     while true
@@ -90,6 +167,7 @@ class BookInfoManager
       print "
         1. 蔵書データの登録
         2. 蔵書データの表示
+        3. 蔵書データの検索
         9. 終了
         番号を選んでください(1,2,9)："
 
@@ -102,6 +180,9 @@ class BookInfoManager
       when '2' == num
         # 蔵書データの表示
         listAllBookInfos
+      when '3' == num
+        # 蔵書データの検索
+        searchAllBookInfo
       when '9' == num
         # アプリケーションの終了
         break;
