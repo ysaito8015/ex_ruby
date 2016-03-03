@@ -1,4 +1,7 @@
 require 'date'
+require 'csv'
+require 'nkf'
+require 'pry'
 
 class BookInfo
   # BookInfo クラスのインスタンスを初期化する
@@ -14,7 +17,7 @@ class BookInfo
 
   # BookInfoクラスのインスタンスをCSV形式へ変換する
   def to_csv(key)
-    "#{key},#{@title},#{@author},#{@page},#{@publish_date}\n"
+    %W(#{key} #{@title} #{@author} #{@page} #{@publish_date})
   end
 
   # BookInfoクラスのインスタンスの文字列表現を返す
@@ -41,18 +44,12 @@ class BookInfoManager
 
   # 蔵書データをセットアップする
   def setUp
-    # csvファイルを読み込みモードでオープンする
-    open(@csv_fname, "r:UTF-8") do |file|
-      # ファイルの行を1行ずつ取り出して、lineに読み込む
-      file.each do |line|
-        # lineからchompで改行を除き、splitでカンマ区切りに分割し
-        # 左辺のそれぞれの項目へ多重代入する
-        key, title, author, page, pdate = line.chomp.split(',')
-        # 蔵書データ1件分のインスタンスを作成してハッシュに登録する
-        # strptimeは、文字列からDateクラスのインスタンスを作成するメソッド
-        @book_infos[key] = BookInfo.new(title,author,page.to_i,Date.strptime(pdate))
-      end # 1行ずつの処理の終わり
-    end # ファイルを閉じている
+    csv = File.open(@csv_fname).read
+    csv = NKF.nkf('-Xm0 -w', csv)
+    CSV.parse(csv) do |row|
+      key,title,author,page,pdate = row
+      @book_infos[key] = BookInfo.new(title,author,page.to_i,Date.strptime(pdate))
+    end # 1行ずつの処理の終わり
   end
 
   # 蔵書データを登録する
@@ -93,9 +90,9 @@ class BookInfoManager
   # 蔵書データを全件ファイルへ書き込んで保存する
   def saveAllBookInfos
     # csvファイルを書き込みモードでオープンする
-    open(@csv_fname, "w:UTF-8") do |file|
+    CSV.open(@csv_fname, "w:cp932") do |file|
       @book_infos.each do |key,info|
-        file.print(info.to_csv(key))
+        file << info.to_csv(key)
       end # 1行ずつの処理の終わり
       puts "\nファイルへ保存しました"
     end # ファイルを閉じている

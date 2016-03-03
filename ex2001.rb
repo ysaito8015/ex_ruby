@@ -42,7 +42,7 @@ class BookInfoManager
   # 蔵書データをセットアップする
   def setUp
     # csvファイルを読み込みモードでオープンする
-    open(@csv_fname, "r:UTF-8") do |file|
+    open(@csv_fname, "r:cp932:UTF-8") do |file|
       # ファイルの行を1行ずつ取り出して、lineに読み込む
       file.each do |line|
         # lineからchompで改行を除き、splitでカンマ区切りに分割し
@@ -93,7 +93,7 @@ class BookInfoManager
   # 蔵書データを全件ファイルへ書き込んで保存する
   def saveAllBookInfos
     # csvファイルを書き込みモードでオープンする
-    open(@csv_fname, "w:UTF-8") do |file|
+    open(@csv_fname, "w:cp932") do |file|
       @book_infos.each do |key,info|
         file.print(info.to_csv(key))
       end # 1行ずつの処理の終わり
