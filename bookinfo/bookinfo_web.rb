@@ -108,7 +108,7 @@ server.mount_proc("/delete") do |req,res|
 
   dbh.disconnect
 
-  remplate = ERB.new( File.read('deleted.erb') )
+  template = ERB.new( File.read('deleted.erb') )
   res.body << template.result(binding)
 end
 
