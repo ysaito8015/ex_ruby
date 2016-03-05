@@ -24,6 +24,7 @@ server = WEBrick::HTTPServer.new(config)
 
 server.config[:MimeTypes]["erb"] = "text/html"
 
+# 一覧表示からの処理
 server.mount_proc("/list") do |req,res|
   p req.query
   if /(.*)\.(delete|edit)$/ =~ req.query['operation']
@@ -37,6 +38,30 @@ server.mount_proc("/list") do |req,res|
     res.body << template.result(binding)
   else
     template = ERB.new( File.read('noselected.erb') )
+    res.body << template.result(binding)
+  end
+end
+
+# 登録の処理
+server.mount_proc("/entry") do |req,res|
+  p req.query
+  dbh = DBI.connect( 'DBI:SQLite3:bookinfo_sqlite.db' )
+
+  rows = dbh.select_one("select * from bookinfos where id='#{req.query['id']}';")
+  if rows then
+    dbh.disconnect
+    template = ERB.new( File.read('noentried.erb') )
+    res.body << template.result(binding)
+  else
+    dbh.do("insert into bookinfos values (\
+          '#{req.query['id']}',\
+          '#{req.query['title']}',
+          '#{req.query['author']}',
+          '#{req.query['page']}',\
+          '#{req.query['publish_date']}');")
+    dbh.disconnect
+
+    template = ERB.new( File.read('entried.erb') )
     res.body << template.result(binding)
   end
 end
