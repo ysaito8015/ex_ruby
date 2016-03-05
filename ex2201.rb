@@ -42,7 +42,7 @@ class BookInfoManager
       @dbh.do("drop table if exists bookinfos")
       @dbh.do("create table bookinfos (
               id varchar(50) not null,
-              titile varchar(100) not null,
+              title varchar(100) not null,
               author varchar(100) not null,
               page int not null,
               publish_date datetime not null,
