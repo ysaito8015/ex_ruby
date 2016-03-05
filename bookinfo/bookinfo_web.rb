@@ -84,6 +84,21 @@ server.mount_proc("/retrieve") do |req,res|
   res.body << template.result(binding)
 end
 
+# 修正の処理
+server.mount_proc("/edit") do |req,res|
+  p req.query
+  dbh = DBI.connect( 'DBI:SQLite3:bookinfo_sqlite.db' )
+  dbh.do("update bookinfos set 
+         title='#{req.query['title']}',
+         author='#{req.query['author']}',
+         page='#{req.query['page']}',
+         publish_date='#{req.query['publish_date']}' \
+         where id='#{req.query['id']}';")
+  dbh.disconnect
+  template = ERB.new( File.read('edited.erb') )
+  res.body << template.result(binding)
+end
+
 trap(:INT) do
   server.shutdown
 end
